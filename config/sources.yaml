@@ -1,0 +1,74 @@
+# Validated 2026-10-04. Run `ai-radar validate` to re-check; feed URLs drift.
+#
+# The digest runs every day, so no source may be empty by design. arXiv's RSS
+# carries only that day's announcements and is empty at weekends, so arXiv is
+# read through its API instead, sorted by submission date — that returns the
+# newest papers on any day of the week. Keep max_results aligned with
+# defaults.max_items_per_source below.
+
+defaults:
+  max_items_per_source: 40      # these archives are large; take the newest only
+  max_age_days: 7
+
+sources:
+  - id: arxiv_eess_as
+    name: arXiv eess.AS (audio and speech processing)
+    url: http://export.arxiv.org/api/query?search_query=cat:eess.AS&sortBy=submittedDate&sortOrder=descending&max_results=40
+    enabled: true
+
+  - id: arxiv_cs_cl
+    name: arXiv cs.CL (computation and language)
+    url: http://export.arxiv.org/api/query?search_query=cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=40
+    enabled: true
+
+  - id: arxiv_cs_sd
+    name: arXiv cs.SD (sound)
+    url: http://export.arxiv.org/api/query?search_query=cat:cs.SD&sortBy=submittedDate&sortOrder=descending&max_results=40
+    enabled: true
+
+  - id: huggingface
+    name: Hugging Face blog
+    url: https://huggingface.co/blog/feed.xml
+    enabled: true
+
+  - id: openai
+    name: OpenAI news
+    url: https://openai.com/news/rss.xml
+    enabled: true
+
+  - id: deepmind
+    name: Google DeepMind blog
+    url: https://deepmind.google/blog/feed/basic/
+    enabled: true
+
+  - id: google_research
+    name: Google Research blog
+    url: https://research.google/blog/rss/
+    enabled: true
+
+  - id: techcrunch_ai
+    name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    enabled: true
+
+  - id: verge_ai
+    name: The Verge AI
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    enabled: true
+
+  - id: nvidia_dl
+    name: NVIDIA deep learning blog
+    url: https://blogs.nvidia.com/blog/category/deep-learning/feed/
+    enabled: true
+
+# Checked on 2026-10-04 and found to publish no RSS at the usual paths.
+# These are the vendors closest to the beat, so they matter: reaching them
+# needs HTML scraping or a search API (Exa/Tavily), scheduled for a later phase.
+no_feed_found:
+  - Deepgram
+  - AssemblyAI
+  - ElevenLabs
+  - Cartesia
+  - LiveKit
+  - Speechmatics
+  - Sarvam AI

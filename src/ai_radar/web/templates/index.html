@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block subtitle %}{{ profile.identity.role }}{% endblock %}
+{% block body %}
+<div class="stat">
+  <div><b>{{ run_count }}</b><span>runs</span></div>
+  <div><b class="score">{{ up }}</b><span>kept</span></div>
+  <div><b class="score">{{ down }}</b><span>rejected</span></div>
+  <div><b class="score">${{ "%.4f"|format(spend) }}</b><span>total spend</span></div>
+  {% if overall is not none %}
+  <div><b class="score">{{ "%.0f"|format(overall * 100) }}%</b><span>kept, all runs</span></div>
+  <div><b class="score">{{ "%.0f"|format(recent * 100) }}%</b><span>kept, last 7</span></div>
+  {% endif %}
+</div>
+{% if overall is none %}
+  <p class="sub" style="margin:-10px 0 20px">
+    Vote on a run to start measuring efficacy — the share of delivered stories you keep.
+  </p>
+{% elif rated_runs >= 3 and recent > overall %}
+  <p class="sub" style="margin:-10px 0 20px">
+    Recent runs are landing better than the average: the ranker is learning your taste.
+  </p>
+{% endif %}
+{% if not runs %}
+  <p class="empty">No runs yet. Run <code>uv run ai-radar run</code> to create one.</p>
+{% else %}
+<div class="card">
+<table>
+  <tr><th>Run</th><th>When</th><th class="num">In</th><th class="num">Scored</th>
+      <th class="num">Sent</th><th class="num">Kept</th><th class="num">Cost</th></tr>
+  {% for r in runs %}
+  <tr>
+    <td><a href="/run/{{ r.id }}">#{{ r.id }}</a></td>
+    <td class="score">{{ r.started_at.strftime("%d %b %H:%M") }}</td>
+    <td class="num">{{ r.ingested }}</td><td class="num">{{ r.scored }}</td>
+    <td class="num">{{ r.selected }}</td>
+    <td class="num">{% if r.precision is not none %}{{ "%.0f"|format(r.precision * 100) }}%{% else %}—{% endif %}</td>
+    <td class="num">${{ "%.4f"|format(r.cost_usd) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endif %}
+{% endblock %}

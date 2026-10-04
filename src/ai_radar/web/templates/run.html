@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block subtitle %}run #{{ run.id }} · {{ run.started_at.strftime("%A %d %B, %H:%M") }}
+  · {{ run.model }} · ${{ "%.4f"|format(run.cost_usd) }}{% endblock %}
+{% block body %}
+<div class="stat">
+  <div><b class="score">{{ run.ingested }}</b><span>ingested</span></div>
+  <div><b class="score">{{ run.scored }}</b><span>scored</span></div>
+  <div><b class="score">{{ run.selected }}</b><span>selected</span></div>
+  <div><b class="score">{{ run.input_tokens }}/{{ run.output_tokens }}</b><span>tokens in/out</span></div>
+</div>
+
+{% for s in selected %}
+<div class="card">
+  <p class="title"><a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.rank }}. {{ s.title }}</a></p>
+  <p class="meta">
+    <span class="pill">{{ profile.cluster_by_id[s.cluster_id].name if s.cluster_id in profile.cluster_by_id else s.cluster_id }}</span>
+    score {{ s.total }} · rel {{ s.direct_relevance }} · act {{ s.actionability }}
+    · nov {{ s.novelty }} · sig {{ s.significance }} · cred {{ s.source_credibility }}
+    · {{ s.source_name }}
+  </p>
+  <p class="why">{{ s.rationale }}</p>
+  {% include "_vote.html" %}
+</div>
+{% endfor %}
+
+<details>
+  <summary>{{ rejected|length }} not selected — check these when the digest feels wrong</summary>
+  {% for s in rejected %}
+  <div class="card">
+    <p class="title"><a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.title }}</a></p>
+    <p class="meta"><span class="pill">{{ s.cluster_id }}</span> score {{ s.total }} · {{ s.source_name }}</p>
+    <p class="why">{{ s.rationale }}</p>
+    {% include "_vote.html" %}
+  </div>
+  {% endfor %}
+</details>
+{% endblock %}

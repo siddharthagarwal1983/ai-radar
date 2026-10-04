@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}AI Radar{% endblock %}</title>
+<script src="https://unpkg.com/htmx.org@2.0.3"></script>
+<style>
+:root{
+  --bg:#f7f8fa; --panel:#fff; --ink:#11161d; --muted:#5d6775; --line:#e2e6ec;
+  --accent:#2f6df6; --good:#1a7f4b; --bad:#b42318; --radius:10px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0f14; --panel:#141921; --ink:#e8ecf2; --muted:#93a0b4; --line:#232b36;
+    --accent:#6f9bff; --good:#3ddc97; --bad:#ff6b6b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0f14; --panel:#141921; --ink:#e8ecf2; --muted:#93a0b4; --line:#232b36;
+  --accent:#6f9bff; --good:#3ddc97; --bad:#ff6b6b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,sans-serif;}
+.wrap{max-width:860px;margin:0 auto;padding:28px 16px 80px}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:19px;margin:0;letter-spacing:-.01em}
+h1 a{color:inherit;text-decoration:none}
+.sub{color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;margin-bottom:12px}
+.stat{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:22px}
+.stat div{display:flex;flex-direction:column}
+.stat b{font-size:19px;font-variant-numeric:tabular-nums;font-weight:600}
+.stat span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+a{color:var(--accent)}
+.title{font-weight:600;margin:0 0 6px;font-size:15.5px;line-height:1.4}
+.title a{color:var(--ink);text-decoration:none}
+.title a:hover{color:var(--accent)}
+.meta{color:var(--muted);font-size:12.5px;font-family:var(--mono);margin-bottom:8px}
+.why{color:var(--ink);opacity:.9;font-size:14px;margin:0 0 12px}
+.score{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;
+  padding:1px 9px;font-size:11.5px;color:var(--muted)}
+.votes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;background:transparent;color:var(--muted);
+  border:1px solid var(--line);border-radius:7px;padding:5px 13px;transition:.12s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on-up{background:var(--good);border-color:var(--good);color:#fff}
+button.on-down{background:var(--bad);border-color:var(--bad);color:#fff}
+input[type=text]{font:inherit;background:var(--bg);color:var(--ink);
+  border:1px solid var(--line);border-radius:7px;padding:5px 9px;width:min(320px,100%)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.theme{border:none;padding:4px 8px;font-size:12px}
+details summary{cursor:pointer;color:var(--muted);font-size:13.5px;margin:22px 0 10px}
+.empty{color:var(--muted);text-align:center;padding:48px 0}
+</style>
+</head>
+<body><div class="wrap">
+<header>
+  <h1><a href="/">AI Radar</a></h1>
+  <span class="sub">{% block subtitle %}{% endblock %}</span>
+  <span class="spacer"></span>
+  <button class="theme" onclick="cycleTheme()" id="themeBtn">theme: auto</button>
+</header>
+{% block body %}{% endblock %}
+</div>
+<script>
+const modes=["auto","light","dark"];
+function applyTheme(m){
+  document.documentElement.setAttribute("data-theme",m);
+  document.getElementById("themeBtn").textContent="theme: "+m;
+  try{localStorage.setItem("radar-theme",m)}catch(e){}
+}
+function cycleTheme(){
+  const cur=document.documentElement.getAttribute("data-theme")||"auto";
+  applyTheme(modes[(modes.indexOf(cur)+1)%modes.length]);
+}
+try{applyTheme(localStorage.getItem("radar-theme")||"auto")}catch(e){applyTheme("auto")}
+</script>
+</body></html>

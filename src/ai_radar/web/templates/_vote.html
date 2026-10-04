@@ -1,0 +1,16 @@
+<div class="votes" id="vote-{{ s.id }}">
+  <form hx-post="/vote/{{ s.id }}" hx-target="#vote-{{ s.id }}" hx-swap="outerHTML">
+    <input type="hidden" name="verdict" value="1">
+    <button class="{% if s.verdict == 1 %}on-up{% endif %}">Keep</button>
+  </form>
+  <form hx-post="/vote/{{ s.id }}" hx-target="#vote-{{ s.id }}" hx-swap="outerHTML">
+    <input type="hidden" name="verdict" value="-1">
+    <button class="{% if s.verdict == -1 %}on-down{% endif %}">Not for me</button>
+  </form>
+  {% if s.verdict != 0 %}
+    <form method="post" action="/note/{{ s.id }}">
+      <input type="text" name="note" placeholder="why? (optional, teaches the ranker)"
+             value="{{ s.votes[-1].note if s.votes else '' }}">
+    </form>
+  {% endif %}
+</div>

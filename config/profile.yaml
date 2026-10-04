@@ -1,0 +1,136 @@
+# AI Radar — interest profile.
+# Clusters are defined by CAPABILITY, never by company name. An unknown lab's
+# release must score the same as an incumbent's. Company names live in
+# config/sources.yaml (where to fetch) and nowhere else.
+
+identity:
+  role: >-
+    Builder of voice AI agents for enterprise customer support in telecom.
+  context: >-
+    Evaluates and integrates voice agent platforms, STT/TTS providers and
+    realtime speech models. Cares about latency budgets, language coverage
+    (including Indic languages and Hinglish code-switching), call-handling
+    behaviour, and benchmarks that inform a buy decision.
+
+digest:
+  timezone: Asia/Kolkata
+  deliver_at: "07:00"
+  # When the run must START to deliver on time, given the spacing above. Recompute
+  # with `ai-radar run --estimate` whenever spacing or the candidate cap changes.
+  start_at: "05:30"
+  story_count: 5
+  max_per_cluster: 2        # diversity cap
+
+# API calls are issued ONE AT A TIME with a fixed gap between them. Parallelism
+# bought nothing here — the run is a once-a-day batch with no deadline — and cost
+# 26 of 30 items to rate limiting on 2026-10-04. Serial pacing is predictable and
+# keeps well inside any tier's limit.
+limits:
+  # 1.5 minutes between consecutive model calls. Kept in seconds so the unit is
+  # never ambiguous. This is the dominant term in how long a run takes:
+  #   runtime ≈ candidates × spacing. 40 candidates × 90s ≈ 60 minutes.
+  # The trigger must therefore fire well before 07:00 — see digest.start_at.
+  request_spacing_seconds: 90
+
+models:
+  # Any LiteLLM-supported model id. Change provider by changing these strings.
+  scoring: vertex_ai/gemini-3.1-flash-lite
+  summarizing: vertex_ai/gemini-3.1-flash-lite
+
+# Two routes to Gemini, both verified 2026-10-04:
+#   vertex_ai/<model>   Application Default Credentials, location `global`  (current)
+#   gemini/<model>      GEMINI_API_KEY from .env
+# The GEMINI_API_KEY route is on the free tier: 20 requests PER DAY per model,
+# measured 2026-10-04. That is a third of one run, so it is unusable here until
+# billing is enabled. Vertex bills through the GCP project and has real capacity.
+# The settings below apply only to the vertex_ai/ route.
+# project defaults to quota_project_id from the ADC file; set it here to override.
+# gemini-3.8-flash is served from `global`, not from a regional endpoint.
+vertex:
+  project: null
+
+  # DECIDED 2026-10-04: stay on `global`. Residency in India is a preference here,
+  # not a compliance requirement, and the digest only processes public news anyway.
+  #
+  # Context, so this is not re-litigated: gemini-3.1-flash-lite answers from NO
+  # regional endpoint at all (17 probed) — `global` is its only route. `global` is a
+  # routing endpoint, not a place: Google picks a region, does not say which, and so
+  # offers no residency promise. Pinning to India would mean dropping to
+  # gemini-2.5-flash on asia-south1, the only Gemini serving that region.
+  #
+  # There is still NO automatic region fallback: if a configured region cannot serve
+  # the model the run stops and says so, rather than silently rerouting. Re-run
+  # `ai-radar probe` to re-check as Google rolls models out.
+  location: global
+
+rubric:
+  direct_relevance: 0.35
+  actionability: 0.20
+  novelty: 0.20
+  significance: 0.15
+  source_credibility: 0.10
+
+clusters:
+  - id: platforms
+    name: Voice agent platforms and orchestration
+    weight: 0.25
+    counts: >-
+      New or improved agent frameworks, telephony integration, barge-in and
+      turn-taking, warm transfer, tool calling mid-call, state handling across
+      a call, pricing and latency changes.
+
+  - id: realtime
+    name: Speech-to-speech and realtime models
+    weight: 0.20
+    counts: >-
+      Duplex and full-duplex architectures, sub-second turn latency,
+      interruption handling, paralinguistics carried through the pipeline,
+      context retained across turns.
+
+  - id: tts
+    name: TTS and voice realism
+    weight: 0.15
+    counts: >-
+      Naturalness and prosody advances, emotion and style control, voice
+      cloning, streaming first-byte latency, expressive multilingual
+      synthesis, on-device and quantised models.
+
+  - id: stt
+    name: STT and ASR
+    weight: 0.15
+    counts: >-
+      Accuracy under telephony-band noise, accents and dialects,
+      code-switching, streaming latency, diarization, domain adaptation,
+      open-weight releases.
+
+  - id: benchmarks
+    name: Benchmarking and comparison
+    weight: 0.10
+    counts: >-
+      Independent WER, latency or quality comparisons; new evaluation
+      methods, datasets and metrics; leaderboard movement.
+
+  - id: india
+    name: India and multilingual speech
+    weight: 0.10
+    counts: >-
+      Indic ASR and TTS, Hinglish code-switching, low-resource language
+      coverage, open datasets and models, government and academic programmes.
+
+  - id: deployment
+    name: Telecom and contact-centre deployment
+    weight: 0.05
+    counts: >-
+      Deployed results and deflection numbers, compliance and recording
+      constraints, CCaaS platform capabilities, integration patterns.
+
+always_surface: >-
+  A capability that did not exist a month ago, whoever shipped it; an
+  independent benchmark comparing options that could actually be deployed; a
+  latency or WER claim with a reproducible method; anything touching
+  Indic-language speech.
+
+never_surface: >-
+  Generic LLM or chatbot launches with no voice angle; image, video and music
+  generation; AI policy and safety discourse; funding rounds unless the company
+  ships voice infrastructure; model releases with no speech capability.
