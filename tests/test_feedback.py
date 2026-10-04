@@ -134,3 +134,37 @@ def test_already_seen_covers_rejected_stories_not_only_delivered(
     assert already_seen(session, urls) == {"https://e/kept", "https://e/dropped"}
     assert already_seen(session, urls, delivered_only=True) == {"https://e/kept"}
     assert "https://e/brand-new" not in already_seen(session, urls)
+
+
+def test_one_article_is_one_example_however_often_it_was_served(
+    session: Session,
+) -> None:
+    """Before cross-run dedupe existed, the same article was re-served daily and
+    voted down each time. Counting story rows let one article fill the prompt and
+    drown out every other signal."""
+    from ai_radar.db import Run, Story
+
+    for _ in range(4):
+        run = Run(model="t")
+        run.stories = [
+            Story(
+                canonical_url="https://e/repeat",
+                url="https://e/repeat",
+                title="Served every morning",
+                source_id="s",
+                source_name="S",
+                cluster_id="stt",
+                total=50.0,
+                selected=True,
+            )
+        ]
+        session.add(run)
+    session.commit()
+
+    for story in session.query(Story).filter(Story.canonical_url == "https://e/repeat"):
+        session.add(Vote(story_id=story.id, verdict=-1))
+    session.commit()
+
+    block = learned_examples(session)
+    assert block.count("Served every morning") == 1, "one article, one example"
+    assert vote_counts(session) == (0, 1), "four rows for one article is one verdict"
